@@ -17,7 +17,7 @@ A bit of code to simulate a ball-clock, and analyze how many days a clock with n
 
 Copyright © 2014 Paul Allen Richardson
 
-  Distributed under the Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-  By using this software in any fashion, you are
-agreeing to be bound by the terms of this license. You must
-not remove this notice, or any other, from this software.
+    Distributed under the Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+    By using this software in any fashion, you are
+    agreeing to be bound by the terms of this license. You must
+    not remove this notice, or any other, from this software.

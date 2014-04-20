@@ -69,14 +69,20 @@
   {:pre [(full-cycle? clock)]}
   (increment clock minutes-per-cycle))
 
-(defn unique-cycles [{:keys [queue] :as clock}]
-  {:pre [(apply < queue)]}
-  (/
+(defn- cycle [{:keys [queue] :as clock}]
+  (let [next-queue (->> clock next-arrangement :queue (zipmap (range)))]
+    #(let [old-queue (:queue %)]
+       (assoc %
+         :queue
+         (->> old-queue
+              (replace next-queue)
+              (into clojure.lang.PersistentQueue/EMPTY))))))
+
+(defn unique-cycles [balls]
+  (let [clock (ball-clock balls)]
    (->> clock
-        (iterate next-arrangement)
-        next
+        (iterate (cycle clock))
+        rest
         (take-while #(not (apply < (:queue %))))
         count
-        inc                  ; one more for returning to initial state
-        )
-   2))
+        inc)))
