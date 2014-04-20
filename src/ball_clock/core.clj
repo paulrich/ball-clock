@@ -62,3 +62,21 @@
 (defn ball-clock [balls]
   {:ones [] :fives [] :hours []
    :queue (into clojure.lang.PersistentQueue/EMPTY (range 0 balls))})
+
+(defn next-arrangement
+  "Runs the clock through a simulation of a 12-hour cycle"
+  [clock]
+  {:pre [(full-cycle? clock)]}
+  (increment clock minutes-per-cycle))
+
+(defn unique-cycles [{:keys [queue] :as clock}]
+  {:pre [(apply < queue)]}
+  (/
+   (->> clock
+        (iterate next-arrangement)
+        next
+        (take-while #(not (apply < (:queue %))))
+        count
+        inc                  ; one more for returning to initial state
+        )
+   2))
