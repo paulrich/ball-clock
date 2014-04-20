@@ -6,11 +6,24 @@ A bit of code to simulate a ball-clock, and analyze how many days a clock with n
 
 ```clj
 ; Create a ball-clock
-(ball-clock n)
+(ball-clock 4)
+; => {:ones [] :fives [] :hours [] :queue <-(0 1 2 3)-<}
 
-; Analyze how many unique cycles it will have
-(unique-cycles (ball-clock 30))
-; => 30
+; How many minutes can the ball clock represent?
+(maximum-minutes (ball-clock 5))
+; => 9
+
+; Increment the "minutes" field in a clock
+(increment-minutes (ball-clock 3))
+; => {:ones [0] :fives [] :hours [] :queue <-(1 2)-<}
+
+; Increment the minutes a given number of times
+(increment-minutes (ball-clock 5) 6)
+; => {:ones [3] :fives [4] :hours [] :queue <-(2 1 0)-<}
+
+; Analyze how many unique 12-hour cycles a clock with the given number of balls will have
+(unique-cycles 29)
+; => 204
 ```
 
 ## License

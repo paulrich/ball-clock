@@ -5,7 +5,7 @@
 
 (def ^:private minutes-per-cycle (* 12 60))
 
-(defn carry-balls [clock]
+(defn- carry-balls [clock]
   (as-> clock state
         (let [ones (:ones state)]
           (if (> 5 (count ones))
@@ -29,15 +29,23 @@
                 (update-in [:queue] into (->> hours (iterate pop) (map peek) (take 12) next))
                 (update-in [:queue] conj (peek hours)))))))
 
- (defn increment-minutes
-   [{:keys [ones fives hours queue] :as state}]
-   (if (seq queue)
-     (-> state
-         (update-in [:queue] pop)
-         (update-in [:ones] conj (peek queue))
-         carry-balls)))
+(defn increment-minutes
+  ([{:keys [ones fives hours queue] :as state}]
+     "Increment the minutes field of the clock"
+     (if (seq queue)
+       (-> state
+           (update-in [:queue] pop)
+           (update-in [:ones] conj (peek queue))
+           carry-balls)))
+  ([clock n]
+     "Increment the minutes field of the clock n times"
+     (->> clock
+          (iterate increment-minutes)
+          next
+          (take n)
+          last)))
 
- (defn maximum-minutes
+(defn maximum-minutes
   "Returns the maximum minutes the clock can keep track of, up to 12 hours (720 minutes)"
   ([clock maximum]
      (->> clock
@@ -49,13 +57,6 @@
   ([clock]
      (maximum-minutes clock minutes-per-cycle)))
 
-(defn increment [clock minutes]
-  (->> clock
-       (iterate increment-minutes)
-       next
-       (take minutes)
-       last))
-
 (defn- full-cycle? [clock]
   (= (maximum-minutes clock) minutes-per-cycle))
 
@@ -63,13 +64,13 @@
   {:ones [] :fives [] :hours []
    :queue (into clojure.lang.PersistentQueue/EMPTY (range 0 balls))})
 
-(defn next-arrangement
+(defn- next-arrangement
   "Runs the clock through a simulation of a 12-hour cycle"
   [clock]
   {:pre [(full-cycle? clock)]}
-  (increment clock minutes-per-cycle))
+  (increment-minutes clock minutes-per-cycle))
 
-(defn- cycle [{:keys [queue] :as clock}]
+(defn- cycle-transform [{:keys [queue] :as clock}]
   (let [next-queue (->> clock next-arrangement :queue (zipmap (range)))]
     #(let [old-queue (:queue %)]
        (assoc %
@@ -78,10 +79,12 @@
               (replace next-queue)
               (into clojure.lang.PersistentQueue/EMPTY))))))
 
-(defn unique-cycles [balls]
+(defn unique-cycles
+  "Given a number of balls in a ball-clock, calculates how many unique 12-hour cycles the clock can produce"
+  [balls]
   (let [clock (ball-clock balls)]
    (->> clock
-        (iterate (cycle clock))
+        (iterate (cycle-transform clock))
         rest
         (take-while #(not (apply < (:queue %))))
         count

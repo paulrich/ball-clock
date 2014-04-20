@@ -6,17 +6,17 @@
   (testing "Incrementing the clock"
     (is (=
          (-> (ball-clock 5)
-             (increment 1)
+             (increment-minutes 1)
              (select-keys [:ones :queue]))
          {:ones [0] :queue [1 2 3 4]}))
     (is (=
          (-> (ball-clock 5)
-             (increment 2)
+             (increment-minutes 2)
              (select-keys [:ones :queue]))
          {:ones [0 1] :queue [2 3 4]}))
     (is (=
          (-> (ball-clock 5)
-             (increment 6)
+             (increment-minutes 6)
              (select-keys [:ones :fives :queue]))
          {:ones [3] :fives [4] :queue [2 1 0]})
         "Carry and return, five ball")
@@ -45,3 +45,9 @@
     (is (= (maximum-minutes (ball-clock 16)) 119) "carry to hours")
     (is (= (maximum-minutes (ball-clock 26)) 719) "almost enough")
     (is (= (maximum-minutes (ball-clock 27)) 720) "the max!")))
+
+(deftest test-unique-cycles
+  (testing "Test the number of unique days, based on the given assertions in the assignment description"
+    (let [unique-days #(/ (unique-cycles %) 2)]
+      (is (= (unique-days 30) 15))
+      (is (= (unique-days 45) 378)))))
