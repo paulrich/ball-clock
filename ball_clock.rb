@@ -4,30 +4,40 @@ class BallClock
   
   @@memoized = {}
 
-  def initialize (balls)
-    raise "Number of balls must be between 27 and 127" if balls < 27 || balls > 127
+  def initialize(balls)
     @ones = []
     @fives = []
     @hours = []
     @queue = (0...balls).to_a
-    @balls = balls
   end
 
-  def unique_cycles
-    if @@memoized[@balls]
-      return @@memoized[@balls]
+  def queue
+    Array.new(@queue)
+  end
+
+  def transform_queue!(transform)
+    @queue = @queue.map { |x| transform[x] }
+  end
+
+  def original_arrangement?
+    @queue.each_cons(2).all? { |x, y| x < y }
+  end
+
+  def self.unique_days(balls)
+    if @@memoized[balls]
+      return @@memoized[balls]
     end
-    cycle!
+    ball_clock = BallClock.new(balls)
+    ball_clock.cycle!
     cycles = 1
-    transform = Hash[(0...@queue.size).zip(@queue)]
-    until @queue.each_cons(2).all? { |x, y| x < y }
-      @queue = @queue.map { |x| transform[x] }
+    next_queue = ball_clock.queue
+    transform = Hash[(0...balls).zip(next_queue)]
+    until ball_clock.original_arrangement?
+      ball_clock.transform_queue! transform
       cycles += 1
     end
-    @@memoized[@balls] = cycles / 2
+    @@memoized[balls] = cycles / 2
   end
-
-private
 
   def increment!
     @ones.push @queue.shift
@@ -54,6 +64,7 @@ private
     (12 * 60).times {
       increment!
     }
+    self
   end
 
 end
@@ -62,7 +73,7 @@ if __FILE__ == $0
 
   mutex = Mutex.new
   queue = []
-  output = ""
+  output = []
 
   reader = Thread.new {
     input = true
@@ -70,8 +81,9 @@ if __FILE__ == $0
       mutex.synchronize {
         unless queue.empty?
           input = queue.shift
-          if v != 0
-            output << BallClock.new(input).unique_cycles
+          if input
+            raise "Value out of range: 27 <= number-of-balls <= 127" if input < 27 || input > 127
+            output << {balls: input, days: BallClock::unique_days(input)}
           end
         end
       }
@@ -79,8 +91,10 @@ if __FILE__ == $0
   }  
   
   while(gets)
+    next_integer = $_.chomp.to_i
+    break if next_integer == 0
     mutex.synchronize {
-      queue << $_.chomp.to_i
+      queue << next_integer
     }
   end
 
@@ -89,6 +103,8 @@ if __FILE__ == $0
   }
 
   reader.join
-  puts "It's #{output}"
+  output.map { |results|
+    puts "#{results[:balls]} balls cycles after #{results[:days]} days."
+  }
 
 end
